@@ -1,9 +1,11 @@
 import './App.css';
 import { useState } from 'react';
+import Papa from 'papaparse';
 
 function App() {
   const [question_1_response, setQuestion1Response] = useState('');
   const [question_2_response, setQuestion2Response] = useState([]);
+  const [results, setResults] = useState([]);
 
   const handleCheckboxChange = (event) => {
     const { value, checked } = event.target;
@@ -12,24 +14,46 @@ function App() {
     );
   };
 
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    // Load and parse the CSV file
+    const response = await fetch('/resource_list.csv');
+    const csvText = await response.text();
+
+    Papa.parse(csvText, {
+      header: true,
+      complete: (result) => {
+        const filteredResults = result.data.filter((record) => {
+          return (
+            record['Support Region']?.includes(question_1_response) &&
+            question_2_response.some((aidType) => record['Aid Type']?.includes(aidType))
+          );
+        });
+
+        setResults(filteredResults.map((record) => record['For the Tenant']));
+      },
+    });
+  };
+
   return (
     <div className="App">
       <header className="App-header">
         <h1>Webform</h1>
-        <form>
+        <form onSubmit={handleSubmit}>
           {/* Question 1 */}
-          <div style={{ color:'black', backgroundColor: '#f0fffe', padding: '10px', marginBottom: '10px' }}>
-            <p>Question 1</p>
+          <div style={{ color:'black', backgroundColor:'#f0fffe', padding: '10px', marginBottom: '10px' }}>
+            <p>Where do you live?</p>
             <div>
               <label>
                 <input
                   type="radio"
                   name="question_1"
-                  value="Answer 1-1"
-                  checked={question_1_response === 'Answer 1-1'}
+                  value="KCMO"
+                  checked={question_1_response === 'KCMO'}
                   onChange={(e) => setQuestion1Response(e.target.value)}
                 />
-                Answer 1-1
+                Missouri
               </label>
             </div>
             <div>
@@ -37,28 +61,28 @@ function App() {
                 <input
                   type="radio"
                   name="question_1"
-                  value="Answer 1-2"
-                  checked={question_1_response === 'Answer 1-2'}
+                  value="Kansas"
+                  checked={question_1_response === 'Kansas'}
                   onChange={(e) => setQuestion1Response(e.target.value)}
                 />
-                Answer 1-2
+                Kansas
               </label>
             </div>
           </div>
 
           {/* Question 2 */}
           <div style={{ color:'black', backgroundColor: '#f0fffe', padding: '10px', marginBottom: '10px' }}>
-            <p>Question 2</p>
+            <p>What do you need?</p>
             <div>
               <label>
                 <input
                   type="checkbox"
                   name="question_2"
-                  value="Answer 2-1"
-                  checked={question_2_response.includes('Answer 2-1')}
+                  value="Seeking Housing"
+                  checked={question_2_response.includes('Seeking Housing')}
                   onChange={handleCheckboxChange}
                 />
-                Answer 2-1
+                Seeking Housing
               </label>
             </div>
             <div>
@@ -66,11 +90,11 @@ function App() {
                 <input
                   type="checkbox"
                   name="question_2"
-                  value="Answer 2-2"
-                  checked={question_2_response.includes('Answer 2-2')}
+                  value="Eviction"
+                  checked={question_2_response.includes('Eviction')}
                   onChange={handleCheckboxChange}
                 />
-                Answer 2-2
+                Eviction Defense
               </label>
             </div>
             <div>
@@ -78,11 +102,11 @@ function App() {
                 <input
                   type="checkbox"
                   name="question_2"
-                  value="Answer 2-3"
-                  checked={question_2_response.includes('Answer 2-3')}
+                  value="Rent"
+                  checked={question_2_response.includes('Rent')}
                   onChange={handleCheckboxChange}
                 />
-                Answer 2-3
+                Rental Assistance
               </label>
             </div>
             <div>
@@ -90,15 +114,27 @@ function App() {
                 <input
                   type="checkbox"
                   name="question_2"
-                  value="Answer 2-4"
-                  checked={question_2_response.includes('Answer 2-4')}
+                  value="Food"
+                  checked={question_2_response.includes('Food')}
                   onChange={handleCheckboxChange}
                 />
-                Answer 2-4
+                Food and Clothing
               </label>
             </div>
           </div>
+
+          <button type="submit" style={{ marginTop: '10px' }}>Submit</button>
         </form>
+
+        {/* Results Section */}
+        <div style={{ marginTop: '20px', textAlign: 'left' }}>
+          <h2>Results:</h2>
+          {results.map((result, index) => (
+            <div key={index} style={{ marginBottom: '20px', whiteSpace: 'pre-wrap' }}>
+              {result}
+            </div>
+          ))}
+        </div>
       </header>
     </div>
   );
