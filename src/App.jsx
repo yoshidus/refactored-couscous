@@ -6,6 +6,7 @@ function App() {
   const [question_1_response, setQuestion1Response] = useState('');
   const [question_2_response, setQuestion2Response] = useState([]);
   const [results, setResults] = useState([]);
+  const [showResults, setShowResults] = useState(false);
 
   const handleCheckboxChange = (event) => {
     const { value, checked } = event.target;
@@ -26,12 +27,13 @@ function App() {
       complete: (result) => {
         const filteredResults = result.data.filter((record) => {
           return (
-            record['Support Region']?.includes(question_1_response) &&
-            question_2_response.some((aidType) => record['Aid Type']?.includes(aidType))
-          );
+            record['Support Region']?.includes(question_1_response) ||
+            record['Support Region']?.includes('No Limit')
+          ) && question_2_response.some((aidType) => record['Aid Type']?.includes(aidType));
         });
 
-        setResults(filteredResults.map((record) => record['For the Tenant']));
+        setResults(filteredResults);
+        setShowResults(true);
       },
     });
   };
@@ -42,7 +44,14 @@ function App() {
         <h1>Webform</h1>
         <form onSubmit={handleSubmit}>
           {/* Question 1 */}
-          <div style={{ color:'black', backgroundColor:'#f0fffe', padding: '10px', marginBottom: '10px' }}>
+          <div style={{
+            border: '2px solid cyan',
+            borderRadius: '10px',
+            backgroundColor: 'white',
+            color: 'black',
+            padding: '10px',
+            marginBottom: '10px'
+          }}>
             <p>Where do you live?</p>
             <div>
               <label>
@@ -71,7 +80,14 @@ function App() {
           </div>
 
           {/* Question 2 */}
-          <div style={{ color:'black', backgroundColor: '#f0fffe', padding: '10px', marginBottom: '10px' }}>
+          <div style={{
+            border: '2px solid cyan',
+            borderRadius: '10px',
+            backgroundColor: 'white',
+            color: 'black',
+            padding: '10px',
+            marginBottom: '10px'
+          }}>
             <p>What do you need?</p>
             <div>
               <label>
@@ -127,14 +143,38 @@ function App() {
         </form>
 
         {/* Results Section */}
-        <div style={{ marginTop: '20px', textAlign: 'left' }}>
-          <h2>Results:</h2>
-          {results.map((result, index) => (
-            <div key={index} style={{ marginBottom: '20px', whiteSpace: 'pre-wrap' }}>
-              {result}
-            </div>
-          ))}
-        </div>
+        {showResults && (
+          <div style={{
+            border: '2px solid cyan',
+            borderRadius: '10px',
+            backgroundColor: 'white',
+            color: 'black',
+            padding: '10px',
+            marginTop: '20px',
+            textAlign: 'left'
+          }}>
+            <h2>Results:</h2>
+            {results.map((result, index) => (
+              <div key={index} style={{ marginBottom: '20px', whiteSpace: 'pre-wrap' }}>
+                <h3>{result['Name']}</h3>
+                <h4>{result['For the Tenant']}</h4>
+                <button
+                  onClick={() => alert(result['Description'])}
+                  style={{
+                    backgroundColor: 'cyan',
+                    border: 'none',
+                    borderRadius: '5px',
+                    padding: '5px 10px',
+                    cursor: 'pointer',
+                    color: 'black'
+                  }}
+                >
+                  More Info
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </header>
     </div>
   );
